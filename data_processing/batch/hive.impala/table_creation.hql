@@ -22,7 +22,7 @@ create external table log (
 	ts_dayOfWeek tinyint
 )
 stored as parquet
-location '/user/cloudera/output/logs/nasa_processed_logs';
+location '/output/logs/nasa_processed_logs';
 
 create view v_html_access_log as 
 	select * from log where 0 <> instr(resource, '.html');
