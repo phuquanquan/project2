@@ -1,4 +1,3 @@
-
 import org.apache.spark.SparkConf
 
 import org.apache.spark.rdd.RDD
@@ -36,7 +35,6 @@ object LogStreamProcessor  {
 		sparkConf.set("zookeeper.znode.parent", "/hbase")
 		val streamingCtx = new StreamingContext(sparkConf, Milliseconds(args(3).toInt))
 
-		//do your work here
 		//for each dstream, process and store the event body
 		FlumeUtils.createStream(streamingCtx, host, port).
 			foreachRDD(processRDD(_))
@@ -48,7 +46,7 @@ object LogStreamProcessor  {
 
 
 	def processRDD(rdd: RDD[SparkFlumeEvent]) : Unit = {
-		//println(">>>>>>>>>>>>>>>>>>>>>>> got here " + rdd.count)
+		//println(">>>>> got here " + rdd.count)
 		val rddTuples = rdd.map((sfe : SparkFlumeEvent) => {
 				val logEvent = new String(sfe.event.getBody.array)
 				println(">>>>>>>>>>>>>>>> " + logEvent)
@@ -86,7 +84,6 @@ object LogStreamProcessor  {
 		    .inColumnFamily("main")
 		    .save()
 	}
-
 
 	private val findMap = Map(
 			0 -> "",

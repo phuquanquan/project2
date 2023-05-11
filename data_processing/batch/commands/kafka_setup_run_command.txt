@@ -1,14 +1,14 @@
-#to start up zookeeper in single instance single node mode
-zookeeper-server start
+#to start zookeeper
+/usr/local/Cellar/zookeeper/3.8.1/bin/zkServer
 
 #to start up kafka server on the single instance single node zookeeper
-kafka-server-start.sh $KAFKA_HOME/config/server.properties
+$KAFKA_HOME/libexec/bin/kafka-server-start.sh $KAFKA_HOME/libexec/config/server.properties
 
 #create a topic using the command
-kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic logs_topic
+$KAFKA_HOME/bin/kafka-topics --create --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 --topic logs_topic
 
 #list the topics in kafka
-kafka-topics.sh --list --zookeeper localhost:2181
+$KAFKA_HOME/bin/kafka-topics --list --bootstrap-server localhost:9092
 
 #start a console kafka consumer
-kafka-console-consumer.sh --zookeeper localhost:2181 --topic  logs_topic
+$KAFKA_HOME/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic  logs_topic
