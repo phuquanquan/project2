@@ -9,7 +9,7 @@
             <mode>client</mode>
             <name>NasaLogProcessor</name>
             <class>LogProcessor</class>
-            <jar>/lib/logfile-data-processor_2.11-1.0.jar</jar>
+            <jar>/lib/logfile-data-processor_2.10-1.0.jar</jar>
             <arg>${inputPath}</arg>
             <arg>${outputPath}</arg>
         </spark>

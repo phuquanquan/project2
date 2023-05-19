@@ -3,7 +3,7 @@
                  xmlns="uri:oozie:coordinator:0.1">
 	<action>
 	  <workflow>
-	    <app-path>${namenode}/user/cloudera/oozie/logfile-process/wf</app-path>
+	    <app-path>${namenode}/oozie/logfile-process/wf</app-path>
 	    <configuration>
 	      <property>
 	        <name>jobTracker</name>

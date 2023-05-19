@@ -21,3 +21,12 @@ mv NASA_access_log_Aug95 /Users/tpquan/sample-data/nasa_log/august
 hive -f table_creation.hql
 
 # create folder for oozie
+hdfs dfs -mkdir -p /oozie/logfile-process/wf/lib
+hdfs dfs -put oozie_logfile_processing/coordinator.xml /oozie/logfile-process/
+hdfs dfs -put oozie_logfile_processing/job.properties /oozie/logfile-process/
+hdfs dfs -put oozie_logfile_processing/wf/workflow.xml /oozie/logfile-process/wf
+hdfs dfs -put oozie_logfile_processing/wf/job.properties /oozie/logfile-process/wf
+hdfs dfs -put oozie_logfile_processing/wf/lib/logfile-data-processor_2.10-1.0.jar /oozie/logfile-process/wf/lib
+
+# to set the OOZIE_URL env property for oozie cli execution
+export OOZIE_URL=http://localhost:11000/oozie/
