@@ -1,5 +1,5 @@
 #to start zookeeper
-/usr/local/Cellar/zookeeper/3.8.1/bin/zkServer
+/usr/local/Cellar/zookeeper/3.8.1/bin/zkServer (=> $ZOOKEEPER_HOME)
 
 #to start up kafka server on the single instance single node zookeeper
 $KAFKA_HOME/libexec/bin/kafka-server-start.sh $KAFKA_HOME/libexec/config/server.properties
