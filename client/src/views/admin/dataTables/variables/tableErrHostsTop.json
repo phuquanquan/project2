@@ -1,0 +1,62 @@
+[
+  {
+    "host":"maz3.maz.net",
+    "times": 39,
+    "last_time": "12:12:12 Oct 24, 2022",
+    "percent": 75.5
+  },
+  {
+    "host":"piweba3y.prodigy.com",
+    "times": 39,
+    "last_time": "12:12:12 Oct 24, 2022",
+    "percent": 35.4
+  },
+  {
+    "host":"gate.barr.com",
+    "times": 38,
+    "last_time": "12:12:12 Oct 24, 2022",
+    "percent": 25
+  },
+  {
+    "host":"m38-370-9.mit.edu",
+    "times": 37,
+    "last_time": "12:12:12 Oct 24, 2022",
+    "percent": 100
+  },
+  {
+    "host":"ts8-1.westwood.ts.ucla.edu",
+    "times": 37,
+    "last_time": "12:12:12 Oct 24, 2022",
+    "percent": 75.5
+  },
+  {
+    "host":"nexus.mlckew.edu.au",
+    "times": 37,
+    "last_time": "12:12:12 Oct 24, 2022",
+    "percent": 35.4
+  },
+  {
+    "host":"204.62.245.32",
+    "times": 33,
+    "last_time": "12:12:12 Oct 24, 2022",
+    "percent": 25
+  },
+  {
+    "host":"163.206.104.34",
+    "times": 27,
+    "last_time": "12:12:12 Oct 24, 2022",
+    "percent": 100
+  },
+  {
+    "host":"spica.sci.isas.ac.jp",
+    "times": 27,
+    "last_time": "12:12:12 Oct 24, 2022",
+    "percent": 25
+  },
+  {
+    "host":"www-d4.proxy.aol.com",
+    "times": 26,
+    "last_time": "12:12:12 Oct 24, 2022",
+    "percent": 100
+  }
+]

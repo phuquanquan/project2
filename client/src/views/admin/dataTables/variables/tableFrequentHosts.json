@@ -1,0 +1,68 @@
+[
+  {
+    "host": "204.120.34.185",
+    "times": 4555,
+    "last_time": "12:12:12 Oct 24, 2022",
+    "percent": 75.5
+  },
+  {
+    "host": "204.243.249.9",
+    "times": 665,
+    "last_time": "12:12:12 Oct 24, 2022",
+    "percent": 35.4
+  },
+  {
+    "host":"slip1-32.acs.ohio-state.edu",
+    "times": 344,
+    "last_time": "12:12:12 Oct 24, 2022",
+    "percent": 25  
+  },
+  {
+    "host":"lapdog-14.baylor.edu",
+    "times": 678,
+    "last_time": "12:12:12 Oct 24, 2022",
+    "percent": 100  
+  },
+  {
+    "host":"199.77.67.3",
+    "times":766,
+    "last_time": "12:12:12 Oct 24, 2022",
+    "percent": 75.5  
+  },
+  {
+    "host":"gs1.cs.ttu.edu",
+    "times": 765,
+    "last_time": "12:12:12 Oct 24, 2022",
+    "percent": 75.5  
+  },
+  {
+    "host":"haskell.limbex.com",
+    "times": 867,
+    "last_time": "12:12:12 Oct 24, 2022",
+    "percent": 75.5  
+  },
+  {
+    "host":"alfred.uib.no",
+    "times": 2323,
+    "last_time": "12:12:12 Oct 24, 2022",
+    "percent": 35.4  
+  },
+  {
+    "host":"146.129.66.31",
+    "times": 232312,
+    "last_time": "12:12:12 Oct 24, 2022",
+    "percent": 25  
+  },
+  {
+    "host":"manaus.bologna.maraut.it",
+    "times": 1323,
+    "last_time": "12:12:12 Oct 24, 2022",
+    "percent": 100  
+  },
+  {
+    "host":"dialup98-110.swipnet.se",
+    "times": 1234232,
+    "last_time": "12:12:12 Oct 24, 2022",
+    "percent": 75.5
+  }
+]

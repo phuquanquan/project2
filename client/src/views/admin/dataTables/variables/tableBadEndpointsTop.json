@@ -1,0 +1,62 @@
+[
+  {
+    "endpoint":"/pub/winvn/readme.txt",
+    "times": 633,
+    "last_time": "12:12:12 Oct 24, 2022",
+    "percent": 75.5
+  },
+  {
+    "endpoint":"/pub/winvn/release.txt",
+    "times": 494,
+    "last_time": "12:12:12 Oct 24, 2022",
+    "percent": 35.4
+  },
+  {
+    "endpoint":"/shuttle/missions/STS-69/mission-STS-69.html",
+    "times": 431,
+    "last_time": "12:12:12 Oct 24, 2022",
+    "percent": 25
+  },
+  {
+    "endpoint":"/images/nasa-logo.gif",
+    "times": 319,
+    "last_time": "12:12:12 Oct 24, 2022",
+    "percent": 100
+  },
+  {
+    "endpoint":"/elv/DELTA/uncons.htm",
+    "times": 178,
+    "last_time": "12:12:12 Oct 24, 2022",
+    "percent": 75.5
+  },
+  {
+    "endpoint":"/shuttle/missions/sts-68/ksc-upclose.gif",
+    "times": 156,
+    "last_time": "12:12:12 Oct 24, 2022",
+    "percent": 35.4
+  },
+  {
+    "endpoint":"/history/apollo/sa-1/sa-1-patch-small.gif",
+    "times": 146,
+    "last_time": "12:12:12 Oct 24, 2022",
+    "percent": 25
+  },
+  {
+    "endpoint":"/images/crawlerway-logo.gif",
+    "times": 120,
+    "last_time": "12:12:12 Oct 24, 2022",
+    "percent": 100
+  },
+  {
+    "endpoint":"/://spacelink.msfc.nasa.gov",
+    "times": 117,
+    "last_time": "12:12:12 Oct 24, 2022",
+    "percent": 25
+  },
+  {
+    "endpoint":"/history/apollo/pad-abort-test-1/pad-abort-test-1-patch-small.gif",
+    "times": 100,
+    "last_time": "12:12:12 Oct 24, 2022",
+    "percent": 100
+  }
+]
