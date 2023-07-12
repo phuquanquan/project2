@@ -91,4 +91,7 @@ public final class ResourceCountProcessor {
 			}
 		}));
 	}
+	// java -cp target/kafka-examples-0.1-SNAPSHOT.jar
+	// com.okmich.logging.app.LogParserProcessor quickstart.cloudera:9092
+	// log-in-gateway processed-logs
 }

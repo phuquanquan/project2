@@ -94,6 +94,6 @@ object LogProcessor  {
 		//create the log dataframe
 		val logDF = sqlContext.createDataFrame(logRowRDD, schema)
 
-		logDF.write.mode(org.apache.spark.sql.SaveMode.Append).parquet(outputPath)
+		logDF.write.partitionBy("date").mode(org.apache.spark.sql.SaveMode.Append).parquet(outputPath)
 	}
 }

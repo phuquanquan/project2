@@ -1,9 +1,13 @@
 Hackerday Agenda
 ===========================================
-- Đưa ra lý do và lập trình cho việc xử lý log file theo thời gian thực, thay vì xử lý log file theo batch
-- Sử dụng Flume Log4J appenders để nhận log file theo thời gian thực từ các ứng dụng và hệ thống
-- Đưa ra lý do và lập trình cho việc sử dụng Apache Kafka để tổng hợp log từ nhiều nguồn vào một nơi
-- Lưu trữ các sự kiện log như một bộ dữ liệu chuỗi thời gian trong HBase, một cơ sở dữ liệu phân tán phi quan hệ
-- Kết hợp Hive và HBase để truy vấn và lấy dữ liệu từ các sự kiện log đã được lưu trữ
-- Giải quyết sự cố và vấn đề liên quan đến xử lý log file
-- Khám phá và mở rộng kiến trúc hệ thống để đáp ứng các yêu cầu và ứng dụng liên quan đến rủi ro doanh nghiệp
+-	Making a case for real time processing of log files
+-	Getting logs at real time using Flume Log4J appenders
+-	Making a case for Kafka for log aggregation.
+-	Storing log event as a time series datasets in HBase
+-	Integrating Hive and HBase for data retrieval using query.
+-	Troubleshooting
+-	Architectural extensions (eg. enterprise risk systems)
+
+
+
+

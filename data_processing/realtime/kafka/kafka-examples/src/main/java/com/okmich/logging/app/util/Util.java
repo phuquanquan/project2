@@ -21,6 +21,8 @@ public final class Util {
 	}
 
 	public static String getResourceValue(String arg) {
+		// 2017-09-16 14/Aug/1995:01:16:58 -0400 GET /images/USA-logosmall.gif
+		// 200 234
 		if (arg.isEmpty())
 			return "";
 
@@ -32,11 +34,11 @@ public final class Util {
 
 	}
 
-	//	 public static void main(String[] arg) {
+	// public static void main(String[] arg) {
 	//
-	//	 System.out
-	//	 .println(parseLog("prusec.prusec.com - - [03/Aug/1995:13:59:45 -0400] \"GET /software/winvn/wvsmall.gif HTTP/1.0\" 200 13372\n"));
-	//	 System.out
-	//	 .println(parseLog("2017-09-16 21:34:27 INFO  Main:59 - supreme.pcug.org.au - - [11/Aug/1995:23:03:19 -0400] \"GET /shuttle/countdown/ HTTP/1.0\" 304 0\n"));
-	//	 }
+	// System.out
+	// .println(parseLog("prusec.prusec.com - - [03/Aug/1995:13:59:45 -0400] \"GET /software/winvn/wvsmall.gif HTTP/1.0\" 200 13372\n"));
+	// System.out
+	// .println(parseLog("2017-09-16 21:34:27 INFO  Main:59 - supreme.pcug.org.au - - [11/Aug/1995:23:03:19 -0400] \"GET /shuttle/countdown/ HTTP/1.0\" 304 0\n"));
+	// }
 }

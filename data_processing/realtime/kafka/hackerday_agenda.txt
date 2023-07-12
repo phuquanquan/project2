@@ -1,9 +1,9 @@
 Hackerday Agenda
 ===========================================
-- Tái cấu trúc lý do và lợi ích của việc xử lý log file theo thời gian thực
-- Chạy qua ứng dụng của chúng ta và thu thập log theo thời gian thực bằng cách sử dụng Flume Log4J appenders
-- Tích hợp Flume với Kafka sử dụng Channels hoặc Sink, để chuyển đổi và chuyển log từ Flume tới Kafka
-- Sử dụng Kafka Log4J appenders để ghi log trực tiếp vào Kafka
-- Sử dụng Kafka Stream để xử lý luồng dữ liệu trên Kafka và thực hiện các phân tích và xử lý liên quan đến log
-- Sử dụng Kafka Connect để kết nối Kafka với các nguồn dữ liệu và đích dữ liệu khác trong hệ thống
-- Mở rộng kiến trúc của chúng ta trong một môi trường microservice, để đáp ứng các yêu cầu và thách thức của việc xử lý log trong môi trường phân tán và linh hoạt
+-	Re-state the case for real-time processing of log files
+-	Run through our application and real-time log collection using Flume Log4J appenders
+-	Flume Kafka Integration (Channels or Sink)
+-	Kafka Log4J appenders
+-	Kafka Stream
+-	Kafka Connect 
+-	Extending our architecture in a microservice world
