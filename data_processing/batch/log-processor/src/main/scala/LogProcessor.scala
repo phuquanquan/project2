@@ -2,21 +2,55 @@ import org.apache.spark.sql.SQLContext
 import org.apache.spark.SparkConf
 import org.apache.spark.SparkContext
 import org.apache.spark.SparkContext._
-
-
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import org.apache.spark.rdd.RDD
-import org.apache.spark.storage.StorageLevel
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.types._
 
 import scala.util.matching.Regex
 
-import java.text.SimpleDateFormat
-import java.util.Calendar
-
-case class Log (host: String, clientAuthId: String, userId: String, method: String, resource: String, protocol:String, responsecode:String, bytes:String, tz: String, ts: String, year: Short, month: Short, day: Short, hour: Short, minute: Short, sec: Short, dayOfWeek: Short)
+case class Log (
+								 host: String,
+								 client_identd: String,
+								 user_id: String,
+								 date_time: String,
+								 method: String,
+								 endpoint:String,
+								 protocol:String,
+								 response_code: Int,
+								 content_size: Long
+							 )
 
 object LogProcessor  {
+	def parse_apache_time(s: String): LocalDateTime = {
+		val formatter = DateTimeFormatter.ofPattern("dd/MMM/yyyy:HH:mm:ss")
+		LocalDateTime.parse(s, formatter)
+	}
+
+	def parseApacheLogLine(logline: String): (Any, Int) = {
+		val APACHE_ACCESS_LOG_PATTERN: Regex = """^(\S+) (\S+) (\S+) \[([\w:/]+\s[+\-]\d{4})\] "(\S+) (\S+)\s*(\S*)\s*" (\d{3}) (\S+)""".r
+
+		val matchResult = APACHE_ACCESS_LOG_PATTERN.findFirstMatchIn(logline)
+		if (matchResult.isEmpty) {
+			(logline, 0)
+		} else {
+			val size_field = matchResult.group(9)
+			val size = if (size_field == "-") 0L else size_field.toLong
+
+			(Log(
+				matchResult.group(1),
+				matchResult.group(2),
+				matchResult.group(3),
+				parse_apache_time(matchResult.group(4)),
+				matchResult.group(5),
+				matchResult.group(6),
+				matchResult.group(7),
+				matchResult.group(8).toInt,
+				size
+			), 1)
+		}
+	}
 
 	def main(args : Array[String]) : Unit = {
 		if (args.length != 2){
@@ -33,36 +67,17 @@ object LogProcessor  {
 		val sc = new SparkContext(conf)
 
 		val logInputRdd = sc.textFile(inputPath)
-		val LGREGEXP = "(.+?)\\s(.+?)\\s(.+?)\\s\\[(.+?)\\s(.+?)\\]\\s\"(.+?)\\s(.+?)\\s(.+?)\"\\s(.+?)\\s(.+?)".r
 
 		val badRecords = sc.accumulator(0, "Bad Log Line Count")
 
 		val logRDD = logInputRdd.mapPartitions(iters => {
-			val cal  = Calendar.getInstance
-			val sdf = new SimpleDateFormat("dd/MMM/yyyy:hh:mm:ss")
-
-			val ZERO = (0).toShort
-			
-			iters.map (_ match {
-				case LGREGEXP(host, clientAuthId, userId, ts, tz, method, resource, protocol, responsecode, bytes) => {
-						cal.setTime(sdf.parse(ts))
-						val year = cal.get(Calendar.YEAR).toShort
-						val month = cal.get(Calendar.MONTH).toShort
-						val day= cal.get(Calendar.DAY_OF_MONTH).toShort
-						val hour = cal.get(Calendar.HOUR).toShort
-						val min = cal.get(Calendar.MINUTE).toShort
-						val sec = cal.get(Calendar.SECOND).toShort
-						val dayOfWeek = cal.get(Calendar.DAY_OF_WEEK).toShort
-						
-						Log(host, clientAuthId, userId, method, resource, protocol, responsecode, bytes, tz, ts, year, month, day, hour, min, sec, dayOfWeek)
-					}
-				case _ => Log("", "", "", "", "", "", "", "", "", "", ZERO, ZERO, ZERO, ZERO, ZERO, ZERO, ZERO) //bad records
-			}).filter (l => {
-				//put an accumulator
-				badRecords += 1
-				
-				_.host != ""
-			}) //removing bad records
+			iters.map { logline =>
+				val (log, valid) = parseApacheLogLine(logline)
+				if (valid == 0) {
+					badRecords += 1
+				}
+				log
+			}.filter(_.host != "")
 		})
 
 		val sqlContext = new SQLContext(sc)
@@ -71,28 +86,23 @@ object LogProcessor  {
 		val schema = 
 			StructType(
 					StructField("host", StringType, false) ::
-					StructField("clientAuthId", StringType, false) ::
-					StructField("userId", StringType, false) ::
+					StructField("client_identd", StringType, false) ::
+					StructField("user_id", StringType, false) ::
+					StructField("date_time", StringType, false) ::
 					StructField("method", StringType, false) ::
-					StructField("resource", StringType, false) ::
+					StructField("endpoint", StringType, false) ::
 					StructField("protocol", StringType, false) ::
-					StructField("responsecode", StringType, false) ::
-					StructField("bytes", StringType, false) ::
-					StructField("tz", StringType, false) :: 
-					StructField("ts", StringType, false) :: 
-					StructField("ts_year", ShortType, false) :: 
-					StructField("ts_month", ShortType, false) :: 
-					StructField("ts_day", ShortType, false) :: 
-					StructField("ts_hour", ShortType, false) :: 
-					StructField("ts_minute", ShortType, false) :: 
-					StructField("ts_sec", ShortType, false) :: 
-					StructField("ts_dayOfWeek", ShortType, false) ::  Nil
+					StructField("response_code", IntegerType, false) ::
+					StructField("content_size", LongType, false) :: Nil
 				)
 		val logRowRDD = logRDD map (f => {
-				Row(f.host, f.clientAuthId, f.userId, f.method, f.resource, f.protocol, f.responsecode, f.bytes, f.tz, f.ts, f.year, f.month, f.day, f.hour, f.minute, f.sec, f.dayOfWeek)
+				Row(f.host, f.client_identd, f.user_id, f.date_time, f.method, f.endpoint, f.protocol, f.response_code, f.content_size)
 			})
 		//create the log dataframe
 		val logDF = sqlContext.createDataFrame(logRowRDD, schema)
+
+		val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+		val logDFWithDate = logDF.withColumn("date", date_format($"date_time", "yyyy-MM-dd"))
 
 		logDF.write.partitionBy("date").mode(org.apache.spark.sql.SaveMode.Append).parquet(outputPath)
 	}

@@ -17,8 +17,6 @@ mkdir -p /home/cloudera/sample-data/nasa_log/file-channel/dataDir
 mv NASA_access_log_Jul95 /home/cloudera/sample-data/nasa_log/july
 mv NASA_access_log_Aug95 /home/cloudera/sample-data/nasa_log/august
 
-# to execute the one-time hive table creation script
-hive -f table_creation.hql
 
 # create folder for oozie
 hdfs dfs -mkdir -p /user/cloudera/oozie/logfile-process/wf/lib

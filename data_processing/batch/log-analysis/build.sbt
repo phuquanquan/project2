@@ -1,4 +1,4 @@
-name := "LogFile Data Processor"
+name := "LogFile Data Analysis"
 version := "1.0"
 scalaVersion := "2.10.5"
 
