@@ -24,7 +24,7 @@ case class Log (
 
 object LogProcessor  {
 	def parse_apache_time(s: String): LocalDateTime = {
-		val formatter = DateTimeFormatter.ofPattern("dd/MMM/yyyy:HH:mm:ss")
+		val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy:HH:mm:ss")
 		LocalDateTime.parse(s, formatter)
 	}
 
