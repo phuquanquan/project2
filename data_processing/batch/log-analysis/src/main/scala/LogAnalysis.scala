@@ -7,15 +7,18 @@ import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client.{ConnectionFactory, Put}
 import org.apache.hadoop.hbase.util.Bytes
 
+val namespace = "log_analysis"
+val tableName = "log_analysis_report"
+
 object LogAnalysis {
   def main(args: Array[String]): Unit = {
     if (args.length != 2) {
-      println("No arguments!!! Use <inputPath> <outputFolderPath>")
+      println("No arguments!!! Use <inputPath> <zookeeperHost>")
       return
     }
 
     val inputPath = args(0)
-    val outputPath = args(1)
+    val zookeeperHost = args(1)
 
     val sparkConf = new SparkConf().setAppName("NasaLogAnalysis")
     sparkConf.set("spark.hbase.host", zookeeperHost)
@@ -36,7 +39,7 @@ object LogAnalysis {
 
   def processResponseCodeToCount(logDF: DataFrame): Unit = {
     val responseCodeToCount = logDF.groupBy("response_code").count().orderBy($"count".desc).limit(20).collect()
-    saveToHBase(responseCodeToCount, "response_code_to_count")
+    saveToHBase([date, responseCodeToCount], "response_code_to_count")
   }
 
   def processHostsMoreThan10Times(logDF: DataFrame): Unit = {
@@ -57,34 +60,33 @@ object LogAnalysis {
 
   def processUniqueHostCount(logDF: DataFrame): Unit = {
     val uniqueHostCount = logDF.select("host").distinct().count()
-    saveToHBase(Seq(uniqueHostCount), "unique_host_count")
+    saveToHBase([date, uniqueHostCount], "unique_host_count")
   }
 
   def process404ResponseCodes(logDF: DataFrame): Unit = {
-    val badRecordsCount = logDF.filter($"response_code" === 404).count()
-    val badUniqueEndpointsPick20 = logDF.filter($"response_code" === 404).groupBy("endpoint").count().orderBy($"count".desc).limit(20).collect()
-    val errHostsTop25 = logDF.filter($"response_code" === 404).groupBy("host").count().orderBy($"count".desc).limit(20).collect()
-    val errHourList = logDF.filter($"response_code" === 404).withColumn("hour", hour($"date_time")).groupBy("hour").count().collect()
+    val badRecordsCount = logDF.filter($"response_code" >= 400).count()
+    val badUniqueEndpointsPick20 = badRecordsCount.groupBy("endpoint").count().orderBy($"count".desc).limit(20).collect()
+    val errHostsTop20 = badRecordsCount.groupBy("host").count().orderBy($"count".desc).limit(20).collect()
+    val errHourList = badRecordsCount.withColumn("hour", hour($"date_time")).groupBy("hour").count().collect()
 
     saveToHBase(Seq(badRecordsCount), "bad_records_count")
     saveToHBase(badUniqueEndpointsPick20, "bad_unique_endpoints_pick20")
-    saveToHBase(errHostsTop25, "err_hosts_top25")
+    saveToHBase(errHostsTop20, "err_hosts_top20")
     saveToHBase(errHourList, "err_hour_list")
   }
 
-  def saveToHBase(data: Array[Row], tableName: String): Unit = {
-    val hbaseTableName = TableName.valueOf(tableName)
+  def saveToHBase(data: Array[Row], column: String): Unit = {
+    val hbaseTableName = TableName.valueOf(namespace, tableName)
     val hbaseConfig = HBaseConfiguration.create()
     val connection = ConnectionFactory.createConnection(hbaseConfig)
     val table = connection.getTable(hbaseTableName)
 
     data.foreach { row =>
-      val put = new Put(Bytes.toBytes(row.getAs[String](0)))
-      for (i <- 1 until row.length) {
-        val value = row.get(i)
-        val columnName = row.schema.fieldNames(i)
-        put.addColumn(Bytes.toBytes("cf"), Bytes.toBytes(columnName), Bytes.toBytes(value.toString))
-      }
+      val rowKey = row.getAs[String]("date")
+      val value = row.getAs[Any](column)
+      val put = new Put(Bytes.toBytes(rowKey))
+      put.addColumn(Bytes.toBytes("cf"), Bytes.toBytes(column), Bytes.toBytes(value.toString))
+
       table.put(put)
     }
 
@@ -92,17 +94,15 @@ object LogAnalysis {
     connection.close()
   }
 
-  def saveToHBase(data: Seq[Long], tableName: String): Unit = {
-    val hbaseTableName = TableName.valueOf(tableName)
+  def saveToHBase(data: Tuple1, column: String): Unit = {
+    val hbaseTableName = TableName.valueOf(namespace, tableName)
     val hbaseConfig = HBaseConfiguration.create()
     val connection = ConnectionFactory.createConnection(hbaseConfig)
     val table = connection.getTable(hbaseTableName)
 
-    data.foreach { value =>
-      val put = new Put(Bytes.toBytes("row_key"))
-      put.addColumn(Bytes.toBytes("cf"), Bytes.toBytes("value"), Bytes.toBytes(value.toString))
-      table.put(put)
-    }
+    val put = new Put(Bytes.toBytes(data._1))
+    put.addColumn(Bytes.toBytes("cf"), Bytes.toBytes(column), Bytes.toBytes(data._2.toString))
+    table.put(put)
 
     table.close()
     connection.close()

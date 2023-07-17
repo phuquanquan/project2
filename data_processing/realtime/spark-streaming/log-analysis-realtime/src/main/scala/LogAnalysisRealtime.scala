@@ -38,13 +38,67 @@ object LogAnalysisRealtime {
 		streamingCtx.awaitTermination()
 	}
 
+	def parse_apache_time(s: String): LocalDateTime = {
+		val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy:HH:mm:ss")
+		LocalDateTime.parse(s, formatter)
+	}
+
+	def parseApacheLogLine(logline: String): (Any, Int) = {
+		val APACHE_ACCESS_LOG_PATTERN: Regex = """^(\S+) (\S+) (\S+) \[([\w:/]+\s[+\-]\d{4})\] "(\S+) (\S+)\s*(\S*)\s*" (\d{3}) (\S+)""".r
+
+		val matchResult = APACHE_ACCESS_LOG_PATTERN.findFirstMatchIn(logline)
+		if (matchResult.isEmpty) {
+			(logline, 0)
+		} else {
+			val size_field = matchResult.group(9)
+			val size = if (size_field == "-") 0L else size_field.toLong
+
+			(Log(
+				matchResult.group(1),
+				matchResult.group(2),
+				matchResult.group(3),
+				parse_apache_time(matchResult.group(4)),
+				matchResult.group(5),
+				matchResult.group(6),
+				matchResult.group(7),
+				matchResult.group(8).toInt,
+				size
+			), 1)
+		}
+	}
+
 	def processRDD(rdd: RDD[SparkFlumeEvent]): Unit = {
-		val currentDate = DATE_FORMATTER.format(new Date())
-		val currentDayLogs = rdd.filter(sfe => {
-			val logEvent = new String(sfe.event.getBody.array)
-			val fields: Array[String] = logEvent.split(",")
-			fields(1).startsWith(currentDate)
+		val logRDD = rdd.mapPartitions(iters => {
+			iters.map { logline =>
+				val (log, valid) = parseApacheLogLine(logline)
+				if (valid == 0) {
+					badRecords += 1
+				}
+				log
+			}.filter(_.host != "")
 		})
+
+		val sqlContext = new SQLContext(sc)
+
+		//defined schema for the final output
+		val schema =
+			StructType(
+				StructField("host", StringType, false) ::
+					StructField("client_identd", StringType, false) ::
+					StructField("user_id", StringType, false) ::
+					StructField("date_time", StringType, false) ::
+					StructField("method", StringType, false) ::
+					StructField("endpoint", StringType, false) ::
+					StructField("protocol", StringType, false) ::
+					StructField("response_code", IntegerType, false) ::
+					StructField("content_size", LongType, false) :: Nil
+			)
+
+		val logRowRDD = logRDD map (f => {
+			Row(f.host, f.client_identd, f.user_id, f.date_time, f.method, f.endpoint, f.protocol, f.response_code, f.content_size)
+		})
+		//create the log dataframe
+		val logDF = sqlContext.createDataFrame(logRowRDD, schema)
 
 		// Calculate total access count for the current day
 		val accessCount = currentDayLogs.count()

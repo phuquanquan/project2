@@ -39,7 +39,7 @@ object LogStreamProcessor  {
 		//do your work here
 		//for each dstream, process and store the event body
 		FlumeUtils.createStream(streamingCtx, host, port).
-			foreachRDD(processRDD(_))
+			foreachRDD(rdd => processRDD(rdd))
 
 		// Start the computation
 	    streamingCtx.start()
