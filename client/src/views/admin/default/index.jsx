@@ -23,6 +23,11 @@ import DailyTraffic from "views/admin/default/components/DailyTraffic";
 import PieCard from "views/admin/default/components/PieCard";
 import TotalSpent from "views/admin/default/components/TotalSpent";
 import WeeklyRevenue from "views/admin/default/components/WeeklyRevenue";
+import {columnsBadEndpointsTop, columnsTopEndpoints} from "../dataTables/variables/columnsData";
+import tableDataCheck from "../dataTables/variables/tableTopEndpoints.json";
+import TopEndpoints from "../dataTables/components/TopEndpoints";
+import tableBadEndpointsTop from "../dataTables/variables/tableBadEndpointsTop.json";
+import BadEndpointsTop from "../dataTables/components/BadEndpointsTop";
 
 export default function UserReports() {
   // Chakra Color Mode
@@ -122,17 +127,15 @@ export default function UserReports() {
 
       <SimpleGrid columns={{ base: 1, md: 2, xl: 2 }} gap='20px' mb='20px'>
         <TotalSpent />
-        <WeeklyRevenue />
-      </SimpleGrid>
-      <SimpleGrid columns={{ base: 1, md: 1, xl: 2 }} gap='20px' mb='20px'>
           <SimpleGrid columns={{ base: 1, md: 2, xl: 2 }} gap='20px'>
               <DailyTraffic />
-              <DailyTraffic />
+              <PieCard />
           </SimpleGrid>
-        <SimpleGrid columns={{ base: 1, md: 2, xl: 2 }} gap='20px'>
-          <DailyTraffic />
-          <PieCard />
-        </SimpleGrid>
+        {/*<WeeklyRevenue />*/}
+      </SimpleGrid>
+      <SimpleGrid columns={{ base: 1, md: 1, xl: 2 }} gap='20px' mb='20px'>
+          <TopEndpoints columnsData={columnsTopEndpoints} tableData={tableDataCheck} />
+          <BadEndpointsTop columnsData={columnsBadEndpointsTop} tableData={tableBadEndpointsTop} />
       </SimpleGrid>
     </Box>
   );

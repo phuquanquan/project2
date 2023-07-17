@@ -59,7 +59,7 @@ export default function TotalSpent(props) {
               color={textColorSecondary}
               me='4px'
             />
-            This month
+            This day
           </Button>
           <Button
             ms='auto'
@@ -86,7 +86,7 @@ export default function TotalSpent(props) {
             textAlign='start'
             fontWeight='700'
             lineHeight='100%'>
-            Lượng truy cập thống kê
+            Thống kê lượng truy cập
           </Text>
         </Flex>
         <Box minH='260px' minW='75%' mt='auto'>
