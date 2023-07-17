@@ -25,8 +25,8 @@ import {Box, Icon, SimpleGrid, useColorModeValue} from "@chakra-ui/react";
 import FrequentHosts from "./components/FrequentHosts";
 import TopEndpoints from "./components/TopEndpoints";
 import TopTenErrURLs from "./components/TopTenErrURLs";
-import BadEndpointsTop from "views/admin/dataTables/components/BadEndpointsTop";
-import ErrHostsTop from "views/admin/dataTables/components/ErrHostsTop";
+import BadEndpointsTop from "views/admin/batchView/components/BadEndpointsTop";
+import ErrHostsTop from "views/admin/batchView/components/ErrHostsTop";
 
 import {
   columnsErrHostsTop,
@@ -34,19 +34,19 @@ import {
   columnsTopEndpoints,
   columnsTopTenErrURLs,
   columnsBadEndpointsTop,
-} from "views/admin/dataTables/variables/columnsData";
-import tableFrequentHosts from "views/admin/dataTables/variables/tableFrequentHosts.json";
-import tableDataCheck from "views/admin/dataTables/variables/tableTopEndpoints.json";
-import tableDataColumns from "views/admin/dataTables/variables/tableTopTenErrURLs.json";
-import tableBadEndpointsTop from "views/admin/dataTables/variables/tableBadEndpointsTop.json";
-import tableErrHostsTop from "views/admin/dataTables/variables/tableErrHostsTop.json";
+} from "views/admin/batchView/variables/columnsData";
+import tableFrequentHosts from "views/admin/batchView/variables/tableFrequentHosts.json";
+import tableDataCheck from "views/admin/batchView/variables/tableTopEndpoints.json";
+import tableDataColumns from "views/admin/batchView/variables/tableTopTenErrURLs.json";
+import tableBadEndpointsTop from "views/admin/batchView/variables/tableBadEndpointsTop.json";
+import tableErrHostsTop from "views/admin/batchView/variables/tableErrHostsTop.json";
 import React from "react";
 import MiniStatistics from "../../../components/card/MiniStatistics";
 import IconBox from "../../../components/icons/IconBox";
 import {MdBarChart} from "react-icons/md";
-import DailyTraffic from "../default/components/DailyTraffic";
-import PieCard from "../default/components/PieCard";
-import TotalSpent from "../default/components/TotalSpent";
+import DailyTraffic from "../realTimeView/components/DailyTraffic";
+import PieCard from "../realTimeView/components/PieCard";
+import TotalSpent from "../realTimeView/components/TotalSpent";
 
 export default function Settings() {
   // Chakra Color Mode

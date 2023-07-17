@@ -7,23 +7,23 @@ import {
 } from "react-icons/md";
 
 // Admin Imports
-import MainDashboard from "views/admin/default";
-import DataTables from "views/admin/dataTables";
+import RealTimeView from "views/admin/realTimeView";
+import BatchView from "views/admin/batchView";
 
 const routes = [
   {
     name: "Real Time View",
     layout: "/admin",
-    path: "/default",
+    path: "/real-time-view",
     icon: <Icon as={MdHome} width='20px' height='20px' color='inherit' />,
-    component: MainDashboard,
+    component: RealTimeView,
   },
   {
     name: "Batch View",
     layout: "/admin",
     icon: <Icon as={MdBarChart} width='20px' height='20px' color='inherit' />,
-    path: "/data-tables",
-    component: DataTables,
+    path: "/batch-view",
+    component: BatchView,
   },
 ];
 

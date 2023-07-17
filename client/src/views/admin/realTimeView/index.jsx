@@ -19,15 +19,15 @@ import React from "react";
 import {
   MdBarChart,
 } from "react-icons/md";
-import DailyTraffic from "views/admin/default/components/DailyTraffic";
-import PieCard from "views/admin/default/components/PieCard";
-import TotalSpent from "views/admin/default/components/TotalSpent";
-import WeeklyRevenue from "views/admin/default/components/WeeklyRevenue";
-import {columnsBadEndpointsTop, columnsTopEndpoints} from "../dataTables/variables/columnsData";
-import tableDataCheck from "../dataTables/variables/tableTopEndpoints.json";
-import TopEndpoints from "../dataTables/components/TopEndpoints";
-import tableBadEndpointsTop from "../dataTables/variables/tableBadEndpointsTop.json";
-import BadEndpointsTop from "../dataTables/components/BadEndpointsTop";
+import DailyTraffic from "views/admin/realTimeView/components/DailyTraffic";
+import PieCard from "views/admin/realTimeView/components/PieCard";
+import TotalSpent from "views/admin/realTimeView/components/TotalSpent";
+import WeeklyRevenue from "views/admin/realTimeView/components/WeeklyRevenue";
+import {columnsBadEndpointsTop, columnsTopEndpoints} from "../batchView/variables/columnsData";
+import tableDataCheck from "../batchView/variables/tableTopEndpoints.json";
+import TopEndpoints from "../batchView/components/TopEndpoints";
+import tableBadEndpointsTop from "../batchView/variables/tableBadEndpointsTop.json";
+import BadEndpointsTop from "../batchView/components/BadEndpointsTop";
 
 export default function UserReports() {
   // Chakra Color Mode
