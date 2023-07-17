@@ -12,14 +12,14 @@ import DataTables from "views/admin/dataTables";
 
 const routes = [
   {
-    name: "Main Dashboard",
+    name: "Real Time View",
     layout: "/admin",
     path: "/default",
     icon: <Icon as={MdHome} width='20px' height='20px' color='inherit' />,
     component: MainDashboard,
   },
   {
-    name: "Data Tables",
+    name: "Batch View",
     layout: "/admin",
     icon: <Icon as={MdBarChart} width='20px' height='20px' color='inherit' />,
     path: "/data-tables",
