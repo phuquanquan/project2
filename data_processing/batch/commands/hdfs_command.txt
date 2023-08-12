@@ -9,13 +9,13 @@ gunzip NASA_access_log_Aug95.gz
 hdfs dfs -mkdir -p /user/cloudera/output/logs/nasa
 
 ## prepare folders for the flume client agents
-mkdir -p /home/cloudera/sample-data/nasa_log/july
-mkdir -p /home/cloudera/sample-data/nasa_log/august
-mkdir -p /home/cloudera/sample-data/nasa_log/file-channel/checkpointDir
-mkdir -p /home/cloudera/sample-data/nasa_log/file-channel/dataDir
+mkdir -p /home/osboxes/cloudera/sample-data/nasa_log/july
+mkdir -p /home/osboxes/cloudera/sample-data/nasa_log/august
+mkdir -p /home/osboxes/cloudera/sample-data/nasa_log/file-channel/checkpointDir
+mkdir -p /home/osboxes/cloudera/sample-data/nasa_log/file-channel/dataDir
 
-mv NASA_access_log_Jul95 /home/cloudera/sample-data/nasa_log/july
-mv NASA_access_log_Aug95 /home/cloudera/sample-data/nasa_log/august
+mv NASA_access_log_Jul95 /home/osboxes/cloudera/sample-data/nasa_log/july
+mv NASA_access_log_Aug95 /home/osboxes/cloudera/sample-data/nasa_log/august
 
 
 # create folder for oozie
@@ -25,6 +25,3 @@ hdfs dfs -put oozie_logfile_processing/job.properties /user/cloudera/oozie/logfi
 hdfs dfs -put oozie_logfile_processing/wf/workflow.xml /user/cloudera/oozie/logfile-process/wf
 hdfs dfs -put oozie_logfile_processing/wf/job.properties /user/cloudera/oozie/logfile-process/wf
 hdfs dfs -put oozie_logfile_processing/wf/lib/logfile-data-processor_2.10-1.0.jar /user/cloudera/oozie/logfile-process/wf/lib
-
-# to set the OOZIE_URL env property for oozie cli execution
-export OOZIE_URL=http://quickstart:11000/oozie/

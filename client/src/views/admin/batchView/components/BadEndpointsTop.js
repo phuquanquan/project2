@@ -2,7 +2,6 @@ import {
   Flex,
   Table,
   Progress,
-  Icon,
   Tbody,
   Td,
   Text,
@@ -11,7 +10,8 @@ import {
   Tr,
   useColorModeValue,
 } from "@chakra-ui/react";
-import React, { useMemo } from "react";
+import React, { useEffect, useState, useMemo } from "react";
+import axios from "axios";
 import {
   useGlobalFilter,
   usePagination,
@@ -23,18 +23,40 @@ import {
 import Card from "components/card/Card";
 import Menu from "components/menu/MainMenu";
 
-// Assets
-import { MdCheckCircle, MdCancel, MdOutlineError } from "react-icons/md";
 export default function ColumnsTable(props) {
-  const { columnsData, tableData } = props;
+  const [tableData, setTableData] = useState([]);
+  const [columnsData, setColumnsData] = useState([]);
+  const [selectedDate, setSelectedDate] = useState(new Date()); // State để lưu giá trị ngày
 
-  const columns = useMemo(() => columnsData, [columnsData]);
-  const data = useMemo(() => tableData, [tableData]);
+  useEffect(() => {
+    const formattedDate = selectedDate.toISOString().split("T")[0]; // Chuyển đổi ngày sang định dạng "YYYY-MM-DD"
+    // const apiUrl = `http://192.168.64.144:8080/api/tables/log_analysis:log_analysis_report/row/date=${formattedDate}`;
+    const apiUrl = `http://192.168.64.144:8080/api/tables/log_analysis:log_analysis_report/row/date=1995-07-01`;
+    axios.get(apiUrl)
+        .then(response => {
+          // Xử lý dữ liệu từ response.data
+          setTableData(response.data.columnFamilies[0].columnValues);
+          setColumnsData([
+            {
+              Header: "BAD ENDPOINT",
+              accessor: "column",
+            },
+            {
+              Header: "TIMES",
+              accessor: "value",
+            },
+            // ... thêm các cột khác tương tự
+          ]);
+        })
+        .catch(error => {
+          console.error("Error fetching data:", error);
+        });
+  }, [selectedDate]); // Sử dụng selectedDate trong dependency array để gọi API khi ngày thay đổi
 
   const tableInstance = useTable(
     {
-      columns,
-      data,
+      columns: columnsData,
+      data: tableData,
     },
     useGlobalFilter,
     useSortBy,

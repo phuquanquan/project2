@@ -1,18 +1,11 @@
 // Chakra imports
 import {
-  Avatar,
   Box,
-  Flex,
-  FormLabel,
   Icon,
-  Select,
   SimpleGrid,
   useColorModeValue,
 } from "@chakra-ui/react";
-// Assets
-import Usa from "assets/img/dashboards/usa.png";
-// Custom components
-import MiniCalendar from "components/calendar/MiniCalendar";
+
 import MiniStatistics from "components/card/MiniStatistics";
 import IconBox from "components/icons/IconBox";
 import React from "react";
@@ -22,7 +15,6 @@ import {
 import DailyTraffic from "views/admin/realTimeView/components/DailyTraffic";
 import PieCard from "views/admin/realTimeView/components/PieCard";
 import TotalSpent from "views/admin/realTimeView/components/TotalSpent";
-import WeeklyRevenue from "views/admin/realTimeView/components/WeeklyRevenue";
 import {columnsBadEndpointsTop, columnsTopEndpoints} from "../batchView/variables/columnsData";
 import tableDataCheck from "../batchView/variables/tableTopEndpoints.json";
 import TopEndpoints from "../batchView/components/TopEndpoints";

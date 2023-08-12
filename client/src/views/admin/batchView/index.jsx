@@ -45,7 +45,6 @@ import MiniStatistics from "../../../components/card/MiniStatistics";
 import IconBox from "../../../components/icons/IconBox";
 import {MdBarChart} from "react-icons/md";
 import DailyTraffic from "../realTimeView/components/DailyTraffic";
-import PieCard from "../realTimeView/components/PieCard";
 import TotalSpent from "../realTimeView/components/TotalSpent";
 
 export default function Settings() {

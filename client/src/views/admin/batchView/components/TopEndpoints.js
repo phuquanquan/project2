@@ -1,7 +1,6 @@
 import {
   Flex,
   Table,
-  Checkbox,
   Tbody,
   Td,
   Text,
