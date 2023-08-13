@@ -73,52 +73,12 @@ object LogAnalysisRealtime {
     streamingCtx.awaitTermination()
   }
 
-  def parse_apache_time(s: String): String = {
-    val formatter = DateTimeFormatter.ofPattern("dd/MMM/yyyy:HH:mm:ss")
-    LocalDateTime.parse(s.split(" ").head, formatter).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
-  }
-
-  def parseApacheLogLine(logline: String): (Log, Int) = {
-    val APACHE_ACCESS_LOG_PATTERN: Regex = """^(\S+) (\S+) (\S+) \[([\w:/]+\s[+\-]\d{4})\] "(\S+) (\S+)\s*(\S*)\s*" (\d{3}) (\S+)""".r
-
-    val matchResult = APACHE_ACCESS_LOG_PATTERN.findFirstMatchIn(logline)
-    if (matchResult.isEmpty) {
-      (Log("", null, null, null, null, null, null, 0, 0), 0)
-    } else {
-      val size_field = matchResult.get.group(9)
-      val size = if (size_field == "-") 0L else size_field.toLong
-
-      (Log(
-        matchResult.get.group(1),
-        matchResult.get.group(2),
-        matchResult.get.group(3),
-        parse_apache_time(matchResult.get.group(4)),
-        matchResult.get.group(5),
-        matchResult.get.group(6),
-        matchResult.get.group(7),
-        matchResult.get.group(8).toInt,
-        size
-      ), 1)
-    }
-  }
-
   def processRDD(rdd: RDD[SparkFlumeEvent]): Unit = {
-    println(s"Updated data............................")
+    println(s"Updated data............................", rdd.count())
+    return
 
     val sc = rdd.sparkContext
     val sqlContext = new SQLContext(sc)
-
-//    val logRDD = rdd
-//      .map(sfe => new String(sfe.event.getBody.array()))
-//      .mapPartitions(iters => {
-//        iters.map { logline =>
-//          val (log, valid) = parseApacheLogLine(logline)
-//          if (valid == 0) {
-//            badRecords += 1
-//          }
-//          log
-//        }.filter(_.host != "")
-//      })
 
     val logRDD = rdd.map { sfe: SparkFlumeEvent =>
       val logEvent = new String(sfe.event.getBody.array)
@@ -160,15 +120,49 @@ object LogAnalysisRealtime {
     }
     val currentDayLogs = sqlContext.createDataFrame(logRowRDD, schema)
 
-    println(s"Updated data for totalLogCount: $currentDayLogs[0]")
-    processRecord(currentDayLogs)
+//    // Lấy tổng số lượng dòng log một lần để sử dụng lại
+//    val totalLogCount = currentDayLogs.count()
 
-    println(s"Updated data for totalLogCount: 100000000")
+//    currentDayLogs.show()
+    println("total log count: " + logRDD.count())
+    println(s"Updated data for totalLogCount: $currentDayLogs[0]")
+//    processRecord(currentDayLogs)
+//
+//    println(s"Updated data for totalLogCount: 100000000")
 
 //    processContentSize(currentDayLogs)
 //    processResponseCode(currentDayLogs, totalLogCount)
 //    processEndpoints(currentDayLogs, totalLogCount)
 //    process404ResponseCodes(currentDayLogs, totalLogCount)
+  }
+
+  def parse_apache_time(s: String): String = {
+    val formatter = DateTimeFormatter.ofPattern("dd/MMM/yyyy:HH:mm:ss")
+    LocalDateTime.parse(s.split(" ").head, formatter).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+  }
+
+  def parseApacheLogLine(logline: String): (Log, Int) = {
+    val APACHE_ACCESS_LOG_PATTERN: Regex = """^(\S+) (\S+) (\S+) \[([\w:/]+\s[+\-]\d{4})\] "(\S+) (\S+)\s*(\S*)\s*" (\d{3}) (\S+)""".r
+
+    val matchResult = APACHE_ACCESS_LOG_PATTERN.findFirstMatchIn(logline)
+    if (matchResult.isEmpty) {
+      (Log("", null, null, null, null, null, null, 0, 0), 0)
+    } else {
+      val size_field = matchResult.get.group(9)
+      val size = if (size_field == "-") 0L else size_field.toLong
+
+      (Log(
+        matchResult.get.group(1),
+        matchResult.get.group(2),
+        matchResult.get.group(3),
+        parse_apache_time(matchResult.get.group(4)),
+        matchResult.get.group(5),
+        matchResult.get.group(6),
+        matchResult.get.group(7),
+        matchResult.get.group(8).toInt,
+        size
+      ), 1)
+    }
   }
 
   def processRecord(logDF: DataFrame): Unit = {
