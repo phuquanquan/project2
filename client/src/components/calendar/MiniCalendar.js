@@ -1,27 +1,34 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback  } from "react";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import "assets/css/MiniCalendar.css";
 import { Text, Icon } from "@chakra-ui/react";
 import { MdChevronLeft, MdChevronRight } from "react-icons/md";
 import Card from "components/card/Card.js";
+import { useDate } from "../sidebar/components/DateContext";
 
 export default function MiniCalendar(props) {
-    const { selectRange, onDateChange, ...rest } = props;
+    const { selectRange, ...rest } = props;
+    const { selectedDate, handleDateChange } = useDate();
 
     // Đặt ngày cố định là 1995-08-30
     const fixedDate = new Date("1995-08-30");
 
     // Sử dụng ngày cố định làm giá trị ban đầu
-    const [value, onChange] = useState(fixedDate);
+    const [value, onChange] = useState(selectedDate || fixedDate);
 
-    // Gọi hàm xử lý ngày khi component được render
+    const handleCalendarChange = useCallback(
+        (date) => {
+        onChange(date);
+        handleDateChange(date); // Cập nhật selectedDate trong Context
+        },
+        [handleDateChange]
+    );
+
     useEffect(() => {
-        if (onDateChange) {
-            onDateChange(value);
-        }
-    }, [onDateChange, value]);
-
+        handleCalendarChange(value);
+    }, [handleCalendarChange, value]);
+    
     return (
         <Card
             align='center'

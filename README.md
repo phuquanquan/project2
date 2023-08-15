@@ -1,1 +1,2 @@
-# project2
+# start front end
+chrome.exe --user-data-dir="C://Chrome dev session" --disable-web-security

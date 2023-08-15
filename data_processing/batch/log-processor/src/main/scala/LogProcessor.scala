@@ -31,14 +31,6 @@ object LogProcessor {
   val outputPath = "/user/cloudera/output/logs/nasa_output"
 
   def main(args: Array[String]): Unit = {
-//    if (args.length != 2) {
-//      println("No arguments!!! Use <inputPath> <outputFolderPath>")
-//      return;
-//    }
-//
-//    val inputPath = args(0)
-//    val outputPath = args(1)
-
     val conf = new SparkConf().setAppName("NasaLogProcessor")
     conf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
     conf.registerKryoClasses(Array(classOf[Log]))

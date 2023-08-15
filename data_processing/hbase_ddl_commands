@@ -1,0 +1,8 @@
+## create namespace
+create_namespace 'log_analysis'
+
+## create tables "log_analysis_report" with column families
+create 'log_analysis:log_analysis_report', 'cf'
+
+## create tables "log_analysis_realtime" with column families
+create 'log_analysis:log_analysis_realtime', 'cf'

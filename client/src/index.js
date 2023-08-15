@@ -6,19 +6,22 @@ import AdminLayout from "layouts/admin";
 import { ChakraProvider } from "@chakra-ui/react";
 import theme from "theme/theme";
 import { ThemeEditorProvider } from "@hypertheme-editor/chakra-ui";
+import { DateProvider } from "./components/sidebar/components/DateContext";
 
 ReactDOM.render(
-  <ChakraProvider theme={theme}>
-    <React.StrictMode>
-      <ThemeEditorProvider>
-        <HashRouter>
-          <Switch>
-            <Route path={`/admin`} component={AdminLayout} />
-            <Redirect from='/' to='/admin' />
-          </Switch>
-        </HashRouter>
-      </ThemeEditorProvider>
-    </React.StrictMode>
-  </ChakraProvider>,
+  <DateProvider>
+    <ChakraProvider theme={theme}>
+      <React.StrictMode>
+        <ThemeEditorProvider>
+          <HashRouter>
+            <Switch>
+              <Route path={`/admin`} component={AdminLayout} />
+              <Redirect from='/' to='/admin' />
+            </Switch>
+          </HashRouter>
+        </ThemeEditorProvider>
+      </React.StrictMode>
+    </ChakraProvider>
+  </DateProvider>,
   document.getElementById("root")
 );

@@ -46,8 +46,7 @@ object LogAnalysis {
       // Lấy tổng số lượng dòng log một lần để sử dụng lại
       val totalLogCount = logDF.count()
 
-      processContentSize(logDF, filename)
-      processUniqueHost(logDF, filename)
+      processRecord(logDF, totalLogCount, filename)
       processResponseCode(logDF, totalLogCount, filename)
       processHostsMoreThan10Times(logDF, totalLogCount, filename)
       processTopEndpoints(logDF, totalLogCount, filename)
@@ -113,19 +112,29 @@ object LogAnalysis {
     danhSachParquetFiles
   }
 
-  def processContentSize(logDF: DataFrame, rowKey: String): Unit = {
-    val resultDF = logDF.filter(col("response_code") === 200)
+  def processRecord(logDF: DataFrame, totalLogCount: Long, rowKey: String): Unit = {
+    // total number of visits
+    saveToHBase(Seq(totalLogCount), "total_log_count", rowKey)
 
-    val averageContentSize = resultDF.select(avg(col("content_size"))).collect()(0)(0)
+    val result200DF = logDF.filter(col("response_code") === 200)
 
+    // Total number of successful hits
+    val count200 = result200DF.count()
+    saveToHBase(Seq(count200), "total_number_of_successful", rowKey)
+
+    // Total failed access
+    val failedAccess = totalLogCount - count200
+    saveToHBase(Seq(failedAccess), "total_failed_access", rowKey)
+
+    // Content Size Avg
+    val averageContentSize = result200DF.select(avg(col("content_size"))).collect()(0)(0)
     saveToHBase(Seq(averageContentSize), "average_content_size", rowKey)
-  }
 
-  def processUniqueHost(logDF: DataFrame, rowKey: String): Unit = {
+    // Number of Unique Hosts
     val uniqueHostCount = logDF.select("host").distinct().count()
-
     saveToHBase(Seq(uniqueHostCount), "unique_host_count", rowKey)
   }
+
 
   def processResponseCode(logDF: DataFrame, totalLogCount: Long, rowKey: String): Unit = {
     // Lọc ra thời gian cuối cùng của dòng log mới nhất cho mỗi response_code
@@ -215,21 +224,6 @@ object LogAnalysis {
     // Lọc ra thời gian cuối cùng của dòng log mới nhất cho mỗi endpoint
     val lastDateTimeEndpoint = logDF.groupBy("endpoint")
       .agg(max(col("date_time")).alias("last_time"))
-
-    val badUniqueEndpointsPick20DF = logDF.filter(col("response_code") >= 400)
-      .groupBy("endpoint", "response_code")
-      .agg(count("*") as "count",
-        round(((count("*") / totalLogCount) * 100), 2).alias("percentage"))
-      .orderBy(col("count").desc)
-      .join(lastDateTimeEndpoint, Seq("endpoint"), "inner")
-      .withColumn("endpoint", col("endpoint").cast("string"))
-      .withColumn("response_code", col("response_code").cast("string"))
-      .withColumn("count", col("count").cast("string"))
-      .withColumn("last_time", col("last_time").cast("string"))
-      .withColumn("percentage", col("percentage").cast("string"))
-
-    val badUniqueEndpointsPick20 = badUniqueEndpointsPick20DF.limit(20).collect()
-    saveToHBase(badUniqueEndpointsPick20, Array("endpoint", "response_code", "count", "last_time", "percentage"), rowKey, column_data="bad_unique_endpoints")
 
     // Lọc ra thời gian cuối cùng của dòng log mới nhất cho mỗi host
     val lastDateTimeHost = logDF.groupBy("host")

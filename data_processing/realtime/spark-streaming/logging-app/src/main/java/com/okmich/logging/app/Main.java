@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.okmich.logging.app;
 
 import java.io.BufferedReader;
@@ -53,6 +48,11 @@ public class Main {
         while (line != null) {
             logger.info(line);
             line = br.readLine();
+            try{
+                Thread.sleep(1000);
+            }catch(Exception ex){
+
+            }
         }
     }
 }

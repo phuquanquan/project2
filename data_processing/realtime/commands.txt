@@ -1,7 +1,8 @@
 #start spark streaming
-spark-submit --master yarn target/scala-2.10/log-stream-processor-assembly-1.0.jar localhost localhost 4422
+spark-submit --master yarn target/scala-2.11/log-analysis-realtime_2.11-1.0.jar --master yarn --num-executors=5
 
 # start the flume agent
 flume-ng agent --name server --conf-file flume-server/server-agent.properties
 
-
+# start the logging app
+bash logging-app/start-logging-app.sh

@@ -1,8 +1,8 @@
 #create a topic using the command
-kafka-topics --create --zookeeper quickstart-bigdata:2181 --replication-factor 1 --partitions 1 --topic logs_topic
+kafka-topics --create --zookeeper quickstart-bigdata:2181 --replication-factor 1 --partitions 1 --topic weblog-streaming
 
 #list the topics in kafka
 kafka-topics --list --zookeeper quickstart-bigdata:2181
 
 #start a console kafka consumer
-kafka-console-consumer --zookeeper quickstart-bigdata:2181 --topic  logs_topic
+kafka-console-consumer --zookeeper quickstart-bigdata:2181 --topic  weblog-streaming
