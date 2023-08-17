@@ -19,6 +19,7 @@ import scala.util.matching.Regex
 import org.apache.spark.sql.streaming.Trigger
 import org.json4s._
 import org.json4s.jackson.JsonMethods._
+import org.json4s.JsonAST.{JArray, JInt, JString, JObject, JValue}
 
 
 case class Log(
@@ -109,10 +110,10 @@ object LogAnalysisRealtime {
         val formattedDate: String = currentDate.format(dateFormatter)
 
         processRecord(currentDayLogs, totalLogCount, formattedDate)
-        // processContentSize(currentDayLogs, formattedDate)
-        processResponseCode(currentDayLogs, totalLogCount, formattedDate)
-//        processEndpoints(currentDayLogs, totalLogCount)
-//        process404ResponseCodes(currentDayLogs, totalLogCount)
+        processOnline(currentDayLogs, formattedDate)
+        processResponseCode(currentDayLogs, formattedDate)
+        processEndpoints(currentDayLogs, formattedDate)
+        process404ResponseCodes(currentDayLogs, formattedDate)
       })
       .start()
       .awaitTermination()
@@ -150,112 +151,298 @@ object LogAnalysisRealtime {
   def processRecord(logDF: DataFrame, totalLogCount: Long, rowKey: String): Unit = {
     updateToHBase(Seq(totalLogCount), "total_log_count", rowKey)
 
-//    val successfulAccessCount = logDF.filter(col("response_code").equalTo(200))
-//      .agg(count("*") as "count").collect()
-//    updateToHBase(Seq(successfulAccessCount), "successful_access_count", rowKey = "process_record")
+    val result200DF = logDF.filter(col("response_code") === 200)
 
-//    val uniqueHostCount = logDF.select("host").distinct().count()
-//
-//    updateToHBase(Seq(uniqueHostCount), "unique_host_count", rowKey = "process_record")
+    // Total number of successful hits
+    val count200 = result200DF.count()
+    updateToHBase(Seq(count200), "total_number_of_successful", rowKey)
+
+    val totalContentSize = result200DF.agg(sum("content_size")).collect()(0)(0).asInstanceOf[Long]
+    updateToHBase(Seq(totalContentSize), "total_content_size", rowKey)
+
+
+    // Total failed access
+    val failedAccess = totalLogCount - count200
+    updateToHBase(Seq(failedAccess), "total_failed_access", rowKey)
+
+    // Number of Unique Hosts
+    val uniqueHostCount = logDF.select("host").distinct().count()
+    updateToHBase(Seq(uniqueHostCount), "unique_host_count", rowKey)
+
+    val badRecordsCount = logDF.filter(col("response_code") >= 400).count()
+    updateToHBase(Seq(badRecordsCount), "bad_records_count", rowKey)
   }
 
-//  def processContentSize(logDF: DataFrame, rowKey: String): Unit = {
-//    val resultDF = logDF.filter(col("response_code").equalTo(200))
-//    val totalCount = resultDF.count()
 
-//    val averageContentSize = resultDF.select(avg(col("content_size"))).collect()(0)(0)
+  import java.text.SimpleDateFormat
+  import java.util.Calendar
 
-//    val rows: Array[Row] = Array(Row(averageContentSize, totalCount))
-//    updateToHBase(rows, Array("response_code", "count"), rowKey, column_data = "content_size")
-//  }
-//
-//
- def processResponseCode(logDF: DataFrame, totalLogCount: Long, rowkey: String): Unit = {
-   // Lọc ra thời gian cuối cùng của dòng log mới nhất cho mỗi response_code
-   val lastDateTimeDF = logDF.groupBy("response_code")
-     .agg(max(col("date_time")).alias("last_time"))
+  def processOnline(logDF: DataFrame, rowKey: String): Unit = {
+    val onlineUsersCount = logDF.filter(col("response_code") === 200).count()
 
-   // Join resultDF và lastDateTimeDF để kết hợp thời gian cuối cùng vào kết quả
-   val resultDF = logDF.groupBy("response_code")
-     .agg(count("*") as "count",
-       round(((count("*") / totalLogCount) * 100), 2).alias("percentage"))
-     .orderBy(col("count").desc)
-     .join(lastDateTimeDF, Seq("response_code"), "inner")
-     .withColumn("response_code", col("response_code").cast("string"))
-     .withColumn("count", col("count").cast("string"))
-     .withColumn("last_time", col("last_time").cast("string"))
-     .withColumn("percentage", col("percentage").cast("string"))
+    val column_data = "online_users_count"
+    implicit val formats: DefaultFormats.type = DefaultFormats
 
-   // Lưu kết quả vào HBase
-   val responseCodeToCount = resultDF.limit(20).collect()
-   updateToHBase(responseCodeToCount, Array("response_code", "count", "last_time", "percentage"), rowkey, column_data = "response_code")
- }
+    val timeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+    val formattedTime = timeFormat.format(Calendar.getInstance().getTime())
 
- def processEndpoints(logDF: DataFrame, totalLogCount: Long): Unit = {
-   // Lọc ra thời gian cuối cùng của dòng log mới nhất cho mỗi endpoint
-   val lastDateTimeDF = logDF.groupBy("endpoint")
-     .agg(max(col("date_time")).alias("last_time"))
-
-   val resultDF = logDF.groupBy("endpoint")
-     .agg(count("*") as "count",
-       round(((count("*") / totalLogCount) * 100), 2).alias("percentage"))
-     .orderBy(col("count").desc)
-     .join(lastDateTimeDF, Seq("endpoint"), "inner")
-     .withColumn("endpoint", col("endpoint").cast("string"))
-     .withColumn("count", col("count").cast("string"))
-     .withColumn("last_time", col("last_time").cast("string"))
-     .withColumn("percentage", col("percentage").cast("string"))
-
-   val topEndpoints = resultDF.collect()
-   updateToHBase(topEndpoints, Array("endpoint", "count", "last_time", "percentage"), rowKey = "endpoints", column_data = "data")
- }
-
- def process404ResponseCodes(logDF: DataFrame, totalLogCount: Long): Unit = {
-   // Lọc ra thời gian cuối cùng của dòng log mới nhất cho mỗi endpoint
-   val lastDateTimeEndpoint = logDF.groupBy("endpoint")
-     .agg(max(col("date_time")).alias("last_time"))
-
-   val badUniqueEndpointsPick = logDF.filter(col("response_code") >= 400)
-     .groupBy("endpoint", "response_code")
-     .agg(count("*") as "count",
-       round(((count("*") / totalLogCount) * 100), 2).alias("percentage"))
-     .orderBy(col("count").desc)
-     .join(lastDateTimeEndpoint, Seq("endpoint"), "inner")
-     .withColumn("endpoint", col("endpoint").cast("string"))
-     .withColumn("response_code", col("response_code").cast("string"))
-     .withColumn("count", col("count").cast("string"))
-     .withColumn("last_time", col("last_time").cast("string"))
-     .withColumn("percentage", col("percentage").cast("string"))
-
-   val badUniqueEndpointsPick = badUniqueEndpointsPick.limit(20).collect()
-   updateToHBase(badUniqueEndpointsPick20, Array("endpoint", "response_code", "count", "last_time", "percentage"), rowKey, column_data = "bad_unique_endpoints")
- }
-
- def updateToHBase(data: Array[Row], columns: Array[String], rowKey: String, column_data: String): Unit = {
-   implicit val formats: DefaultFormats.type = DefaultFormats
-
-    val jsonArray = data.map { row =>
-      val rowDataMap = columns.map(column => column -> row.getAs[String](column)).toMap
-      Extraction.decompose(rowDataMap)
-    }
-
-    val jsonArrayFormatted = compact(render(JArray(jsonArray.toList)))
+    val jsonArray = List(
+      JObject(
+        "time" -> JString(formattedTime),
+        "count" -> JInt(onlineUsersCount)
+      )
+    )
+    val jsonArrayFormatted = compact(render(JArray(jsonArray)))
 
     val put = new Put(Bytes.toBytes(rowKey))
     put.addColumn(Bytes.toBytes("cf"), Bytes.toBytes(column_data), Bytes.toBytes(jsonArrayFormatted))
     table.put(put)
- }
+  }
+
+  def processResponseCode(logDF: DataFrame, rowkey: String): Unit = {
+    val lastDateTimeDF = logDF.groupBy("response_code")
+      .agg(max(col("date_time")).alias("last_time"))
+
+    val resultDF = logDF.groupBy("response_code")
+      .agg(count("*") as "count")
+      .orderBy(col("count").desc)
+      .join(lastDateTimeDF, Seq("response_code"), "inner")
+      .withColumn("response_code", col("response_code").cast("string"))
+      .withColumn("count", col("count").cast("long")) // Cast to Long
+      .withColumn("last_time", col("last_time").cast("string"))
+
+    val responseCodeToCount = resultDF.collect()
+    val column_data = "response_code"
+    val columns = Array("response_code", "count", "last_time")
+
+    implicit val formats: DefaultFormats.type = DefaultFormats
+
+    val get = new Get(Bytes.toBytes(rowkey))
+    val result = table.get(get)
+
+    if (!result.isEmpty) {
+      val existingJson = Bytes.toString(result.getValue(Bytes.toBytes("cf"), Bytes.toBytes(column_data)))
+      val existingData = if (existingJson != null) parse(existingJson).asInstanceOf[JArray] else JArray(Nil)
+
+      val newDataArray = responseCodeToCount.flatMap { row =>
+        val newValue = row.getAs[String]("response_code")
+        val existingValueOption = existingData.arr.find(json => (json \ "response_code").extract[String] == newValue)
+        val updatedValue: Seq[JValue] = existingValueOption match {
+          case Some(json) =>
+            val existingCount = (json \ "count").extract[Long]
+            val newCount = existingCount + row.getAs[Long]("count")
+            val newTime = row.getAs[String]("last_time")
+            Seq(JObject(
+              "response_code" -> JString(newValue),
+              "count" -> JInt(newCount.toInt),
+              "last_time" -> JString(newTime)
+            ))
+          case None => Seq(JObject(
+            "response_code" -> JString(row.getAs[String]("response_code")),
+            "count" -> JInt(row.getAs[Long]("count").toInt),
+            "last_time" -> JString(row.getAs[String]("last_time"))
+          ))
+        }
+        updatedValue
+      }
+
+      val combinedData = (existingData.arr.filter { json =>
+                                                    val existingResponseCode = (json \ "response_code").extract[String]
+                                                    !newDataArray.exists(newRow => (newRow \ "response_code").extract[String] == existingResponseCode)
+                                                  }) ++ newDataArray
+      val jsonArrayFormatted = compact(render(JArray(combinedData.toList)))
+
+      val put = new Put(Bytes.toBytes(rowkey))
+      put.addColumn(Bytes.toBytes("cf"), Bytes.toBytes(column_data), Bytes.toBytes(jsonArrayFormatted))
+      table.put(put)
+    } else {
+      val jsonArray = responseCodeToCount.map { row =>
+        JObject(
+          "response_code" -> JString(row.getAs[String]("response_code")),
+          "count" -> JInt(row.getAs[Long]("count").toInt),
+          "last_time" -> JString(row.getAs[String]("last_time"))
+        )
+      }
+
+      val jsonArrayFormatted = compact(render(JArray(jsonArray.toList)))
+
+      val put = new Put(Bytes.toBytes(rowkey))
+      put.addColumn(Bytes.toBytes("cf"), Bytes.toBytes(column_data), Bytes.toBytes(jsonArrayFormatted))
+      table.put(put)
+    }
+  }
+
+  def processEndpoints(logDF: DataFrame, rowKey: String): Unit = {
+    // Lọc ra thời gian cuối cùng của dòng log mới nhất cho mỗi endpoint
+    val lastDateTimeDF = logDF.groupBy("endpoint")
+      .agg(max(col("date_time")).alias("last_time"))
+
+    val resultDF = logDF.groupBy("endpoint")
+      .agg(count("*") as "count")
+      .orderBy(col("count").desc)
+      .join(lastDateTimeDF, Seq("endpoint"), "inner")
+      .withColumn("endpoint", col("endpoint").cast("string"))
+      .withColumn("count", col("count").cast("long"))
+      .withColumn("last_time", col("last_time").cast("string"))
+
+    val topEndpoints = resultDF.collect()
+    val column_data = "top_endpoints"
+    val column = Array("endpoint", "count", "last_time")
+
+    implicit val formats: DefaultFormats.type = DefaultFormats
+
+    val get = new Get(Bytes.toBytes(rowKey))
+    val result = table.get(get)
+
+    if (!result.isEmpty) {
+      val existingJson = Bytes.toString(result.getValue(Bytes.toBytes("cf"), Bytes.toBytes(column_data)))
+      val existingData = if (existingJson != null) parse(existingJson).asInstanceOf[JArray] else JArray(Nil)
+
+      val newDataArray = topEndpoints.flatMap { row =>
+        val newValue = row.getAs[String]("endpoint")
+        val existingValueOption = existingData.arr.find(json => (json \ "endpoint").extract[String] == newValue)
+        val updatedValue: Seq[JValue] = existingValueOption match {
+          case Some(json) =>
+            val existingCount = (json \ "count").extract[Long]
+            val newCount = existingCount + row.getAs[Long]("count")
+            val newTime = row.getAs[String]("last_time")
+            Seq(JObject(
+              "endpoint" -> JString(newValue),
+              "count" -> JInt(newCount.toInt),
+              "last_time" -> JString(newTime)
+            ))
+          case None => Seq(JObject(
+            "endpoint" -> JString(row.getAs[String]("endpoint")),
+            "count" -> JInt(row.getAs[Long]("count").toInt),
+            "last_time" -> JString(row.getAs[String]("last_time"))
+          ))
+        }
+        updatedValue
+      }
+
+      val combinedData = (existingData.arr.filter { json =>
+                                                    val existingEndpoint = (json \ "endpoint").extract[String]
+                                                    !newDataArray.exists(newRow => (newRow \ "endpoint").extract[String] == existingEndpoint)
+                                                  }) ++ newDataArray
+      val jsonArrayFormatted = compact(render(JArray(combinedData.toList)))
+
+      val put = new Put(Bytes.toBytes(rowKey))
+      put.addColumn(Bytes.toBytes("cf"), Bytes.toBytes(column_data), Bytes.toBytes(jsonArrayFormatted))
+      table.put(put)
+    } else {
+      val jsonArray = topEndpoints.map { row =>
+        JObject(
+          "endpoint" -> JString(row.getAs[String]("endpoint")),
+          "count" -> JInt(row.getAs[Long]("count").toInt),
+          "last_time" -> JString(row.getAs[String]("last_time"))
+        )
+      }
+
+      val jsonArrayFormatted = compact(render(JArray(jsonArray.toList)))
+
+      val put = new Put(Bytes.toBytes(rowKey))
+      put.addColumn(Bytes.toBytes("cf"), Bytes.toBytes(column_data), Bytes.toBytes(jsonArrayFormatted))
+      table.put(put)
+    }
+  }
+
+  def process404ResponseCodes(logDF: DataFrame, rowKey: String): Unit = {
+    // Lọc ra thời gian cuối cùng của dòng log mới nhất cho mỗi endpoint
+    val lastDateTimeEndpoint = logDF.groupBy("endpoint")
+      .agg(max(col("date_time")).alias("last_time"))
+
+    val badUniqueEndpointsPickDF = logDF.filter(col("response_code") >= 400)
+      .groupBy("endpoint", "response_code")
+      .agg(count("*") as "count")
+      .orderBy(col("count").desc)
+      .join(lastDateTimeEndpoint, Seq("endpoint"), "inner")
+      .withColumn("endpoint", col("endpoint").cast("string"))
+      .withColumn("response_code", col("response_code").cast("string"))
+      .withColumn("count", col("count").cast("long"))
+      .withColumn("last_time", col("last_time").cast("string"))
+
+    val badUniqueEndpointsPick = badUniqueEndpointsPickDF.collect()
+    val column_data = "bad_unique_endpoints"
+    val column = Array("endpoint", "response_code", "count", "last_time")
+
+    implicit val formats: DefaultFormats.type = DefaultFormats
+
+    val get = new Get(Bytes.toBytes(rowKey))
+    val result = table.get(get)
+
+    if (!result.isEmpty) {
+      val existingJson = Bytes.toString(result.getValue(Bytes.toBytes("cf"), Bytes.toBytes(column_data)))
+      val existingData = if (existingJson != null) parse(existingJson).asInstanceOf[JArray] else JArray(Nil)
+
+      val newDataArray = badUniqueEndpointsPick.flatMap { row =>
+        val newValue = row.getAs[String]("endpoint")
+        val existingValueOption = existingData.arr.find(json => (json \ "endpoint").extract[String] == newValue)
+        val updatedValue: Seq[JValue] = existingValueOption match {
+          case Some(json) =>
+            val newCode = row.getAs[String]("response_code")
+            val existingCount = (json \ "count").extract[Long]
+            val newCount = existingCount + row.getAs[Long]("count")
+            val newTime = row.getAs[String]("last_time")
+            Seq(JObject(
+              "endpoint" -> JString(newValue),
+              "response_code" -> JString(newCode),
+              "count" -> JInt(newCount.toInt),
+              "last_time" -> JString(newTime)
+            ))
+          case None => Seq(JObject(
+            "endpoint" -> JString(row.getAs[String]("endpoint")),
+            "response_code" -> JString(row.getAs[String]("response_code")),
+            "count" -> JInt(row.getAs[Long]("count").toInt),
+            "last_time" -> JString(row.getAs[String]("last_time"))
+          ))
+        }
+        updatedValue
+      }
+
+      val combinedData = (existingData.arr.filter { json =>
+                                                    val existingBadEndpoint = (json \ "endpoint").extract[String]
+                                                    !newDataArray.exists(newRow => (newRow \ "endpoint").extract[String] == existingBadEndpoint)
+                                                  }) ++ newDataArray
+      val jsonArrayFormatted = compact(render(JArray(combinedData.toList)))
+
+      val put = new Put(Bytes.toBytes(rowKey))
+      put.addColumn(Bytes.toBytes("cf"), Bytes.toBytes(column_data), Bytes.toBytes(jsonArrayFormatted))
+      table.put(put)
+    } else {
+      val jsonArray = badUniqueEndpointsPick.map { row =>
+        JObject(
+          "endpoint" -> JString(row.getAs[String]("endpoint")),
+          "response_code" -> JString(row.getAs[String]("response_code")),
+          "count" -> JInt(row.getAs[Long]("count").toInt),
+          "last_time" -> JString(row.getAs[String]("last_time"))
+        )
+      }
+
+      val jsonArrayFormatted = compact(render(JArray(jsonArray.toList)))
+
+      val put = new Put(Bytes.toBytes(rowKey))
+      put.addColumn(Bytes.toBytes("cf"), Bytes.toBytes(column_data), Bytes.toBytes(jsonArrayFormatted))
+      table.put(put)
+    }
+  }
 
   def updateToHBase(data: Seq[Any], column: String, rowKey: String): Unit = {
     val get = new Get(Bytes.toBytes(rowKey))
     val result = table.get(get)
 
     if (!result.isEmpty) {
-      val existingValue = Bytes.toString(result.getValue(Bytes.toBytes("cf"), Bytes.toBytes(column))).toInt
-      val newValue = existingValue + data.head.toString.toInt // Assuming data contains only one value
-      val put = new Put(Bytes.toBytes(rowKey))
-      put.addColumn(Bytes.toBytes("cf"), Bytes.toBytes(column), Bytes.toBytes(newValue.toString))
-      table.put(put)
+      val existingValueBytes = result.getValue(Bytes.toBytes("cf"), Bytes.toBytes(column))
+      if (existingValueBytes != null) {
+        val existingValue = Bytes.toString(existingValueBytes).toInt
+        val newValue = existingValue + data.head.toString.toInt // Assuming data contains only one value
+        val put = new Put(Bytes.toBytes(rowKey))
+        put.addColumn(Bytes.toBytes("cf"), Bytes.toBytes(column), Bytes.toBytes(newValue.toString))
+        table.put(put)
+      } else {
+        val put = new Put(Bytes.toBytes(rowKey))
+        put.addColumn(Bytes.toBytes("cf"), Bytes.toBytes(column), Bytes.toBytes(data.head.toString))
+        table.put(put)
+      }
     } else {
       val put = new Put(Bytes.toBytes(rowKey))
       data.zipWithIndex.foreach { case (value, index) =>

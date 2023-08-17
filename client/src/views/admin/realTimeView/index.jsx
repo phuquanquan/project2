@@ -12,11 +12,16 @@ import React, { useState, useEffect } from "react";
 import {
   MdBarChart,
 } from "react-icons/md";
+import {
+  columnsTopEndpoints,
+  columnsTopErrURLs,
+} from 'views/admin/variables/columnsData';
+
 import DailyTraffic from "views/admin/components/DailyTraffic";
 import PieCard from "views/admin/components/PieCard";
 import TotalSpent from "views/admin/components/TotalSpent";
-import {columnsTopEndpoints} from "../variables/columnsData";
 import TopEndpoints from "../components/TopEndpoints";
+import TopErrURLs from "../components/TopErrorEndpoint";
 import analysisRealtimeApi from "api/logAnalysisRealtime/analysisRealtimeApi";
 
 export default function UserReports() {
@@ -33,8 +38,8 @@ export default function UserReports() {
     const rowKey = `date=${year}-${month}-${day}`;
 
     try {
-      const response = await analysisRealtimeApi.get("date=2023-08-14");
-      console.log('Fetch analysis report successfully: ', response);
+      const response = await analysisRealtimeApi.get(rowKey);
+      console.log('Fetch analysis realtime successfully: ', response);
 
       setLogAnaLysisRealtime(response?.columnFamilies[0]?.columnValues);
     } catch (error) {
@@ -52,6 +57,7 @@ export default function UserReports() {
     // Clear interval khi component bị unmount
     return () => clearInterval(intervalId);
   }, []);
+
 
   console.log(logAnaLysisRealtime);
 
@@ -72,8 +78,8 @@ export default function UserReports() {
               }
             />
           }
-          name='Tổng số truy cập'
-          value='232323232'
+          name='Total number of visits'
+          value={(logAnaLysisRealtime[7]?.value)}
         />
         <MiniStatistics
             startContent={
@@ -86,8 +92,8 @@ export default function UserReports() {
                     }
                 />
             }
-          name='Tổng số truy cập thành công'
-          value='222222222'
+          name='Total number of successful'
+          value={(logAnaLysisRealtime[8]?.value)}
         />
         <MiniStatistics
             startContent={
@@ -100,8 +106,8 @@ export default function UserReports() {
                     }
                 />
             }
-            name='Số người đang trực tuyến'
-            value='1000'
+            name='Number of people online'
+            value="10"
         />
         <MiniStatistics
             startContent={
@@ -114,8 +120,8 @@ export default function UserReports() {
                     }
                 />
             }
-          name='Kích thước nội dung trung bình'
-          value='17531'
+          name='Content Size Avg'
+          value={Math.round((logAnaLysisRealtime[5]?.value)/(logAnaLysisRealtime[8]?.value))}
         />
         <MiniStatistics
             startContent={
@@ -128,8 +134,8 @@ export default function UserReports() {
                     }
                 />
             }
-          name='Số lượng máy chủ duy nhất'
-          value='54507'
+          name='Number of Unique Hosts'
+          value={(logAnaLysisRealtime[9]?.value)}
         />
         <MiniStatistics
             startContent={
@@ -142,8 +148,8 @@ export default function UserReports() {
                     }
                 />
             }
-          name='Tổng số mã lỗi 404'
-          value='6185'
+          name='Error code number'
+          value={(logAnaLysisRealtime[0]?.value)}
         />
       </SimpleGrid>
 
@@ -156,8 +162,8 @@ export default function UserReports() {
         {/*<WeeklyRevenue />*/}
       </SimpleGrid>
       <SimpleGrid columns={{ base: 1, md: 1, xl: 2 }} gap='20px' mb='20px'>
-          {/* <TopEndpoints columnsData={columnsTopEndpoints} tableData={tableDataCheck} /> */}
-          {/* <BadEndpointsTop columnsData={columnsBadEndpointsTop} tableData={tableBadEndpointsTop} /> */}
+          <TopEndpoints columnsData={columnsTopEndpoints} tableData={JSON.parse(logAnaLysisRealtime[4].value)} />
+          <TopErrURLs columnsData={columnsTopErrURLs} tableData={JSON.parse(logAnaLysisRealtime[1].value)} />
       </SimpleGrid>
     </Box>
   );

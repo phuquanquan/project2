@@ -247,18 +247,18 @@ export const pieChartOptions = {
   },
 };
 
-export const pieChartData = [100, 100, 100, 100, 100, 100, 100];
+export const pieChartData = [29686, 1806, 372, 0, 551, 1, 0];
 
 // Total Spent Default
 
 export const lineChartDataTotalSpent = [
   {
     name: "Revenue",
-    data: [50, 64, 48, 66, 49, 68],
+    data: [50, 64, 48, 66, 49, 68, 80],
   },
   {
     name: "Profit",
-    data: [30, 40, 24, 46, 20, 46],
+    data: [30, 40, 24, 46, 20, 46, 50],
   },
 ];
 
@@ -304,7 +304,7 @@ export const lineChartOptionsTotalSpent = {
   },
   xaxis: {
     type: "numeric",
-    categories: ["SEP", "OCT", "NOV", "DEC", "JAN", "FEB"],
+    categories: ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"],
     labels: {
       style: {
         colors: "#A3AED0",

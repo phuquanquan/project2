@@ -157,7 +157,7 @@ export default function Settings() {
           </SimpleGrid>
           <SimpleGrid mb='20px' columns={{ sm: 1, md: 2 }} spacing={{ base: '20px', xl: '20px' }}>
             <SimpleGrid row={{ base: 1, md: 2, xl: 2 }} gap='20px'>
-              <TotalSpent />
+              <TotalSpent selectedDate={selectedDate}/>
               <DailyTraffic />
             </SimpleGrid>
             <SimpleGrid row={{ base: 1, md: 2, xl: 2 }} gap='20px'>
